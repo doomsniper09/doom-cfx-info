@@ -143,88 +143,95 @@
     
             const code = input.split('/').pop();
             const apiUrl = `https://servers-frontend.fivem.net/api/servers/single/${code}`;
+            
+            // Adding delay before starting the fetch
+            setTimeout(async () => {
+                try {
+                    const response = await fetch(apiUrl, {
+                        headers: {
+                            "User-Agent": "Mozilla/5.0"
+                        }
+                    });
     
-            try {
-                const response = await fetch(apiUrl, {
-                    headers: {
-                        "User-Agent": "Mozilla/5.0"
+                    if (response.status === 404) {
+                        output.innerHTML = `<p style="color: red;">Invalid code or server not found.</p>`;
+                        return;
                     }
-                });
     
-                if (response.status === 404) {
-                    output.innerHTML = `<p style="color: red;">Invalid code or server not found.</p>`;
-                    return;
-                }
+                    const data = await response.json();
+                    const serverData = data.Data;
     
-                const data = await response.json();
-                const serverData = data.Data;
+                    if (!serverData) {
+                        output.innerHTML = `<p style="color: red;">Failed to retrieve server data.</p>`;
+                        return;
+                    }
     
-                if (!serverData) {
-                    output.innerHTML = `<p style="color: red;">Failed to retrieve server data.</p>`;
-                    return;
-                }
+                    let connectEndPoint = serverData.connectEndPoints[0] || "Unknown";
+                    const hostname = serverData.hostname || "Unknown";
+                    const players = serverData.players?.length || 0;
+                    const maxPlayers = serverData.svMaxclients || "Unknown";
+                    const resources = serverData.resources?.length || 0;
+                    const serverVars = serverData.vars || {};
+                    const onesync = serverVars.onesync_enabled || "Unknown";
     
-                let connectEndPoint = serverData.connectEndPoints[0] || "Unknown";
-                const hostname = serverData.hostname || "Unknown";
-                const players = serverData.players?.length || 0;
-                const maxPlayers = serverData.svMaxclients || "Unknown";
-                const resources = serverData.resources?.length || 0;
-                const serverVars = serverData.vars || {};
-                const onesync = serverVars.onesync_enabled || "Unknown";
+                    // Resolve IP or handle custom domain endpoints
+                    let resolvedIP = connectEndPoint;
+                    if (connectEndPoint.startsWith('http://') || connectEndPoint.startsWith('https://')) {
+                        const domain = new URL(connectEndPoint).hostname;
+                        const dnsApi = `https://dns.google/resolve?name=${domain}`;
     
-                // Resolve IP or handle custom domain endpoints
-                let resolvedIP = connectEndPoint;
-                if (connectEndPoint.startsWith('http://') || connectEndPoint.startsWith('https://')) {
-                    const domain = new URL(connectEndPoint).hostname;
-                    const dnsApi = `https://dns.google/resolve?name=${domain}`;
-    
-                    try {
-                        const dnsResponse = await fetch(dnsApi);
-                        if (dnsResponse.ok) {
-                            const dnsData = await dnsResponse.json();
-                            resolvedIP = dnsData.Answer?.[0]?.data || "Failed to resolve domain.";
-                        } else {
+                        try {
+                            const dnsResponse = await fetch(dnsApi);
+                            if (dnsResponse.ok) {
+                                const dnsData = await dnsResponse.json();
+                                resolvedIP = dnsData.Answer?.[0]?.data || "Failed to resolve domain.";
+                            } else {
+                                resolvedIP = "Failed to resolve domain.";
+                            }
+                        } catch {
                             resolvedIP = "Failed to resolve domain.";
                         }
-                    } catch {
-                        resolvedIP = "Failed to resolve domain.";
                     }
-                }
     
-                // Fetch IP location if possible
-                let ipLocation = "Not available";
-                if (resolvedIP !== "Unknown" && resolvedIP !== "Failed to resolve domain.") {
-                    const ipLookupApi = `http://ip-api.com/json/${resolvedIP.split(':')[0]}`;
-                    try {
-                        const ipResponse = await fetch(ipLookupApi);
-                        if (ipResponse.ok) {
-                            const ipData = await ipResponse.json();
-                            ipLocation = `
-                                ${ipData.city}, ${ipData.regionName}, ${ipData.country} 
-                                (ISP: ${ipData.isp})
-                            `;
+                    // Fetch IP location if possible
+                    let ipLocation = "Not available";
+                    if (resolvedIP !== "Unknown" && resolvedIP !== "Failed to resolve domain.") {
+                        const ipLookupApi = `http://ip-api.com/json/${resolvedIP.split(':')[0]}`;
+                        try {
+                            const ipResponse = await fetch(ipLookupApi);
+                            if (ipResponse.ok) {
+                                const ipData = await ipResponse.json();
+                                ipLocation = `
+                                    ${ipData.city}, ${ipData.regionName}, ${ipData.country} 
+                                    (ISP: ${ipData.isp})
+                                `;
+                            }
+                        } catch {
+                            ipLocation = "Failed to fetch IP details.";
                         }
-                    } catch {
-                        ipLocation = "Failed to fetch IP details.";
                     }
-                }
     
-                output.innerHTML = `
-                    <h2>Server Information</h2>
-                    <p><strong>Connect EndPoint:</strong> ${connectEndPoint}</p>
-                    <p><strong>Resolved IP:</strong> ${resolvedIP}</p>
-                    <p><strong>Hostname:</strong> ${hostname}</p>
-                    <p><strong>Players:</strong> ${players} / ${maxPlayers}</p>
-                    <p><strong>Resources:</strong> ${resources}</p>
-                    <p><strong>OneSync Enabled:</strong> ${onesync}</p>
-                    <p><strong>IP Location:</strong> ${ipLocation}</p>
-                `;
-            } catch (error) {
-                console.error(error);
-                output.innerHTML = `<p style="color: red;">An error occurred while fetching server data. Please try again.</p>`;
-            }
+                    // Delay before displaying the result
+                    setTimeout(() => {
+                        output.innerHTML = `
+                            <h2>Server Information</h2>
+                            <p><strong>Connect EndPoint:</strong> ${connectEndPoint}</p>
+                            <p><strong>Resolved IP:</strong> ${resolvedIP}</p>
+                            <p><strong>Hostname:</strong> ${hostname}</p>
+                            <p><strong>Players:</strong> ${players} / ${maxPlayers}</p>
+                            <p><strong>Resources:</strong> ${resources}</p>
+                            <p><strong>OneSync Enabled:</strong> ${onesync}</p>
+                            <p><strong>IP Location:</strong> ${ipLocation}</p>
+                        `;
+                    }, 1000); // Delay of 1 second before displaying results
+                } catch (error) {
+                    console.error(error);
+                    output.innerHTML = `<p style="color: red;">An error occurred while fetching server data. Please try again.</p>`;
+                }
+            }, 1000); // Delay of 1 second before starting the fetch request
         }
     </script>
+    
     
 </body>
 </html>
