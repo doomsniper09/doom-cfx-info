@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFX Server Info</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            animation: fadeInDown 1s ease;
+        }
+
+        p {
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 25px;
+            margin-bottom: 15px;
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 1s ease;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.3s;
+            animation: fadeInUp 1.2s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: #0056b3;
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 600px;
+            color: #fff;
+            text-align: left;
+            animation: fadeIn 1.5s ease;
+        }
+
+        #output h2 {
+            margin-top: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            input[type="text"] {
+                width: 90%;
+            }
+            button {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>CFX Server Information</h1>
+    <p>Enter the CFX link to retrieve server details:</p>
+    <input type="text" id="cfxLink" placeholder="e.g., cfx.re/join/">
+    <button onclick="getServerInfo()">Get Info</button>
+
+    <div id="output">
+        <p>Server details will appear here...</p>
+    </div>
+
+    <script>
+        async function getServerInfo() {
+            const input = document.getElementById('cfxLink').value.trim();
+            const output = document.getElementById('output');
+            output.innerHTML = `<p>Fetching server information...</p>`;
+            
+            if (!input.startsWith('cfx.re/join/')) {
+                output.innerHTML = `<p style="color: red;">Invalid CFX link. Please use a valid link like "cfx.re/join/".</p>`;
+                return;
+            }
+    
+            const code = input.split('/').pop();
+            const apiUrl = `https://servers-frontend.fivem.net/api/servers/single/${code}`;
+    
+            try {
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        "User-Agent": "Mozilla/5.0"
+                    }
+                });
+    
+                if (response.status === 404) {
+                    output.innerHTML = `<p style="color: red;">Invalid code or server not found.</p>`;
+                    return;
+                }
+    
+                const data = await response.json();
+                const serverData = data.Data;
+    
+                if (!serverData) {
+                    output.innerHTML = `<p style="color: red;">Failed to retrieve server data.</p>`;
+                    return;
+                }
+    
+                let connectEndPoint = serverData.connectEndPoints[0] || "Unknown";
+                const hostname = serverData.hostname || "Unknown";
+                const players = serverData.players?.length || 0;
+                const maxPlayers = serverData.svMaxclients || "Unknown";
+                const resources = serverData.resources?.length || 0;
+                const serverVars = serverData.vars || {};
+                const onesync = serverVars.onesync_enabled || "Unknown";
+    
+                // Resolve IP or handle custom domain endpoints
+                let resolvedIP = connectEndPoint;
+                if (connectEndPoint.startsWith('http://') || connectEndPoint.startsWith('https://')) {
+                    const domain = new URL(connectEndPoint).hostname;
+                    const dnsApi = `https://dns.google/resolve?name=${domain}`;
+    
+                    try {
+                        const dnsResponse = await fetch(dnsApi);
+                        if (dnsResponse.ok) {
+                            const dnsData = await dnsResponse.json();
+                            resolvedIP = dnsData.Answer?.[0]?.data || "Failed to resolve domain.";
+                        } else {
+                            resolvedIP = "Failed to resolve domain.";
+                        }
+                    } catch {
+                        resolvedIP = "Failed to resolve domain.";
+                    }
+                }
+    
+                // Fetch IP location if possible
+                let ipLocation = "Not available";
+                if (resolvedIP !== "Unknown" && resolvedIP !== "Failed to resolve domain.") {
+                    const ipLookupApi = `http://ip-api.com/json/${resolvedIP.split(':')[0]}`;
+                    try {
+                        const ipResponse = await fetch(ipLookupApi);
+                        if (ipResponse.ok) {
+                            const ipData = await ipResponse.json();
+                            ipLocation = `
+                                ${ipData.city}, ${ipData.regionName}, ${ipData.country} 
+                                (ISP: ${ipData.isp})
+                            `;
+                        }
+                    } catch {
+                        ipLocation = "Failed to fetch IP details.";
+                    }
+                }
+    
+                output.innerHTML = `
+                    <h2>Server Information</h2>
+                    <p><strong>Connect EndPoint:</strong> ${connectEndPoint}</p>
+                    <p><strong>Resolved IP:</strong> ${resolvedIP}</p>
+                    <p><strong>Hostname:</strong> ${hostname}</p>
+                    <p><strong>Players:</strong> ${players} / ${maxPlayers}</p>
+                    <p><strong>Resources:</strong> ${resources}</p>
+                    <p><strong>OneSync Enabled:</strong> ${onesync}</p>
+                    <p><strong>IP Location:</strong> ${ipLocation}</p>
+                `;
+            } catch (error) {
+                console.error(error);
+                output.innerHTML = `<p style="color: red;">An error occurred while fetching server data. Please try again.</p>`;
+            }
+        }
+    </script>
+    
+</body>
+</html>
