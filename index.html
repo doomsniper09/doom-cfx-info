@@ -244,10 +244,10 @@
                     }
                 }
     
-                // Fetch IP location using ipinfo.io
+                // Fetch IP location using ipinfo.io with your token
                 let ipLocation = "Not available";
                 if (resolvedIP !== "Unknown" && resolvedIP !== "Failed to resolve domain.") {
-                    const ipLookupApi = `https://ipinfo.io/${resolvedIP.split(':')[0]}/json`;
+                    const ipLookupApi = `https://ipinfo.io/${resolvedIP.split(':')[0]}/json?token=b12527edb7df4f`;
                     try {
                         const ipResponse = await fetch(ipLookupApi);
                         if (ipResponse.ok) {
