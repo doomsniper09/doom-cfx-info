@@ -5,79 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CFX Server Info</title>
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
+        /* General Reset */
+        * {
             margin: 0;
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: #fff;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body and Background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-            height: 100vh;
+            min-height: 100vh;
+            padding: 20px;
         }
 
+        /* Container */
+        .container {
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 0.8s ease;
+        }
+
+        /* Typography */
         h1 {
             font-size: 2.5rem;
-            margin-bottom: 10px;
-            animation: fadeInDown 1s ease;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #ffffff;
+            animation: fadeInDown 0.8s ease;
         }
 
         p {
             font-size: 1rem;
-            margin-bottom: 20px;
+            color: #b0b0b0;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease;
         }
 
+        /* Input Field */
         input[type="text"] {
-            width: 80%;
-            padding: 10px;
+            width: 100%;
+            padding: 12px 16px;
             font-size: 1rem;
-            border: none;
-            border-radius: 25px;
-            margin-bottom: 15px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background: #2a2a2a;
+            color: #e0e0e0;
             outline: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            animation: fadeInUp 1s ease;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            animation: fadeInUp 0.8s ease;
         }
 
+        input[type="text"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Button */
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 1rem;
+            font-weight: 600;
             background: #007bff;
-            color: #fff;
+            color: #ffffff;
             border: none;
-            border-radius: 25px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: transform 0.3s, background 0.3s;
-            animation: fadeInUp 1.2s ease;
+            transition: background 0.3s, transform 0.3s;
+            margin-top: 16px;
+            animation: fadeInUp 0.8s ease;
         }
 
         button:hover {
-            transform: scale(1.05);
             background: #0056b3;
+            transform: translateY(-2px);
         }
 
+        /* Output Section */
         #output {
-            margin-top: 20px;
+            margin-top: 24px;
             padding: 20px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            width: 80%;
-            max-width: 600px;
-            color: #fff;
+            border-radius: 12px;
+            background: #2a2a2a;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             text-align: left;
-            animation: fadeIn 1.5s ease;
+            animation: fadeIn 1s ease;
         }
 
         #output h2 {
-            margin-top: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #ffffff;
         }
 
+        #output p {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: #b0b0b0;
+        }
+
+        #output p strong {
+            color: #ffffff;
+        }
+
+        /* Animations */
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: scale(0.9);
+                transform: scale(0.95);
             }
             to {
                 opacity: 1;
@@ -107,27 +153,34 @@
             }
         }
 
+        /* Responsive Design */
         @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
             }
+            .container {
+                padding: 24px;
+            }
             input[type="text"] {
-                width: 90%;
+                font-size: 0.9rem;
             }
             button {
                 font-size: 0.9rem;
+                padding: 10px 20px;
             }
         }
     </style>
 </head>
 <body>
-    <h1>CFX Server Information</h1>
-    <p>Enter the CFX link to retrieve server details:</p>
-    <input type="text" id="cfxLink" placeholder="e.g., cfx.re/join/">
-    <button onclick="getServerInfo()">Get Info</button>
+    <div class="container">
+        <h1>CFX Server Info</h1>
+        <p>Enter the CFX link to retrieve server details:</p>
+        <input type="text" id="cfxLink" placeholder="e.g., cfx.re/join/">
+        <button onclick="getServerInfo()">Get Info</button>
 
-    <div id="output">
-        <p>Server details will appear here...</p>
+        <div id="output">
+            <p>Server details will appear here...</p>
+        </div>
     </div>
 
     <script>
@@ -137,7 +190,7 @@
             output.innerHTML = `<p>Fetching server information...</p>`;
             
             if (!input.startsWith('cfx.re/join/')) {
-                output.innerHTML = `<p style="color: red;">Invalid CFX link. Please use a valid link like "cfx.re/join/".</p>`;
+                output.innerHTML = `<p style="color: #ff4d4d;">Invalid CFX link. Please use a valid link like "cfx.re/join/".</p>`;
                 return;
             }
     
@@ -152,7 +205,7 @@
                 });
     
                 if (response.status === 404) {
-                    output.innerHTML = `<p style="color: red;">Invalid code or server not found.</p>`;
+                    output.innerHTML = `<p style="color: #ff4d4d;">Invalid code or server not found.</p>`;
                     return;
                 }
     
@@ -160,7 +213,7 @@
                 const serverData = data.Data;
     
                 if (!serverData) {
-                    output.innerHTML = `<p style="color: red;">Failed to retrieve server data.</p>`;
+                    output.innerHTML = `<p style="color: #ff4d4d;">Failed to retrieve server data.</p>`;
                     return;
                 }
     
@@ -191,13 +244,12 @@
                     }
                 }
     
-                // Fetch IP location using CORS proxy (e.g., CORS Anywhere)
+                // Fetch IP location if possible
                 let ipLocation = "Not available";
                 if (resolvedIP !== "Unknown" && resolvedIP !== "Failed to resolve domain.") {
-                    const proxyUrl = "https://cors-anywhere.herokuapp.com/"; // Proxy to bypass CORS
                     const ipLookupApi = `http://ip-api.com/json/${resolvedIP.split(':')[0]}`;
                     try {
-                        const ipResponse = await fetch(proxyUrl + ipLookupApi);
+                        const ipResponse = await fetch(ipLookupApi);
                         if (ipResponse.ok) {
                             const ipData = await ipResponse.json();
                             ipLocation = `
@@ -222,10 +274,9 @@
                 `;
             } catch (error) {
                 console.error(error);
-                output.innerHTML = `<p style="color: red;">An error occurred while fetching server data. Please try again.</p>`;
+                output.innerHTML = `<p style="color: #ff4d4d;">An error occurred while fetching server data. Please try again.</p>`;
             }
         }
     </script>
-    
 </body>
 </html>
