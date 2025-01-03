@@ -244,18 +244,20 @@
                     }
                 }
     
-                // Fetch IP location if possible
+                // Fetch IP location using ipinfo.io
                 let ipLocation = "Not available";
                 if (resolvedIP !== "Unknown" && resolvedIP !== "Failed to resolve domain.") {
-                    const ipLookupApi = `http://ip-api.com/json/${resolvedIP.split(':')[0]}`;
+                    const ipLookupApi = `https://ipinfo.io/${resolvedIP.split(':')[0]}/json`;
                     try {
                         const ipResponse = await fetch(ipLookupApi);
                         if (ipResponse.ok) {
                             const ipData = await ipResponse.json();
                             ipLocation = `
-                                ${ipData.city}, ${ipData.regionName}, ${ipData.country} 
-                                (ISP: ${ipData.isp})
+                                ${ipData.city}, ${ipData.region}, ${ipData.country} 
+                                (ISP: ${ipData.org})
                             `;
+                        } else {
+                            ipLocation = "Failed to fetch IP details.";
                         }
                     } catch {
                         ipLocation = "Failed to fetch IP details.";
