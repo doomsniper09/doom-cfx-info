@@ -225,7 +225,6 @@
                 const serverVars = serverData.vars || {};
                 const onesync = serverVars.onesync_enabled || "Unknown";
     
-                // Resolve IP or handle custom domain endpoints
                 let resolvedIP = connectEndPoint;
                 if (connectEndPoint.startsWith('http://') || connectEndPoint.startsWith('https://')) {
                     const domain = new URL(connectEndPoint).hostname;
@@ -244,7 +243,6 @@
                     }
                 }
     
-                // Fetch IP location using ipinfo.io with your token
                 let ipLocation = "Not available";
                 if (resolvedIP !== "Unknown" && resolvedIP !== "Failed to resolve domain.") {
                     const ipLookupApi = `https://ipinfo.io/${resolvedIP.split(':')[0]}/json?token=b12527edb7df4f`;
